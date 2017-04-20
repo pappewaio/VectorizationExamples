@@ -130,7 +130,21 @@ any(as.vector(c1b) == as.vector(c2))
 
 #Fail.. it seems not that the matrix input yields the same result
 
+## Another version where we calculate the cor as a second step.
+res <- apply(inx, 1, function(i, m){
+  		out <- acepack::ace(m[i[1],], m[i[2],])
+		c(out$tx, out$ty)
+  }, m=mat2)
 
+res2 <- apply(res,2, function(m2, g1){
+			cor(m2[1:g1], m2[(g1+1):length(m2)])
+  }, g1=50)
+
+out5 <- matrix(NA, ncol=ncol(mat),nrow=nrow(mat))
+out5[inx] <- res2
+
+#as the cor function does not allow indexes to be used, we cant vectorize furthe
+# without rewriting that function as well. 
 
 
 ##################################################
