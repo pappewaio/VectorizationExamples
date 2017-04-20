@@ -218,5 +218,15 @@ for(i in 1:length(l)) {
   As <- rbind(As, data.frame(t(l[[i]][['A']])))
   Bs <- rbind(Bs, data.frame(t(l[[i]][['B']])))      
 }
+rownames(As) <- names(l)
+rownames(Bs) <- names(l)
 
 #vectorized solution?
+#here is one
+As2 <- data.frame(t(sapply(l, "[[", 1)))
+Bs2 <- data.frame(t(sapply(l, "[[", 2)))
+
+identical(As, As2) #fails because each factor in the columns are named in As2 and not in As; As[,1]; As2[,1]
+identical(Bs, Bs2) #fails because each factor in the columns are named in Bs2 and not in Bs; Bs[,1]; Bs2[,1]
+all.equal(As, As2)
+all.equal(Bs, BS2)
