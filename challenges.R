@@ -139,3 +139,21 @@ for(i in 1:(dim(sobj.bool)[2])) {
   } 
 }
 
+##################################################
+#So here is an easier one (maybe)
+#I have a list where each element (a, b, c) has several other elements (A, B) like this:
+l <- list(
+  a=list(A=letters[1:10], B=LETTERS[11:20]), 
+  b=list(A=letters[1:10], B=LETTERS[11:20]), 
+  c=list(A=letters[1:10], B=LETTERS[11:20])
+)
+
+# so I want to extract each sub-element and construct a dataframe like this:
+As <- data.frame()
+Bs <- data.frame()
+for(i in 1:length(l)) {
+  As <- rbind(As, data.frame(t(l[[i]][['A']])))
+  Bs <- rbind(Bs, data.frame(t(l[[i]][['B']])))      
+}
+
+#vectorized solution?
