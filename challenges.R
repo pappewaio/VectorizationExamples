@@ -32,7 +32,7 @@ rownames(out1) <- colnames(mat)
 
 #######my solution
 
-#create a matrix to hold all comparisons
+#create a matrix to hold all comparisons (this transposes the matrix)
 m1 <- matrix(
   rep(
     as.integer(mat), #integers take less memory
@@ -51,7 +51,7 @@ o <- order(rownames(m1)) #prevents me from creating another large variable to ho
   cor(out$tx, out$ty)
 }
 
-#not sure if sapply strictly constitutes a vectorized solution
+#not sure if sapply strictly constitutes a vectorized solution (unclear to me as well/pappewaio)
 res <- sapply(1:nrow(m1), function(j)
   .inner(m1[j,], m1[o[j],])
 )
@@ -69,6 +69,69 @@ identical(out1, out2)
 #a) even though my solution is vectorized (or at least not a nested for loop), the code becomes very difficult to follow. This is a 
 #typical reason that I sometimes choose to use for loops, i.e. readability. 
 #b) tracking which correlation corresponds to which sample is not so straight forward
+
+
+#########Pappewaio solution
+# first aim: try to use apply to gain speed. (as my belief is that apply is faster than sapply, this needs to be tested)
+
+#usually things are ordered in the same way as they were sent in. That is another unsaid rule when it comes to vectorization.
+#if we want to minimize our memory foot print
+storage.mode(mat)
+mat2 <- apply(mat, c (1, 2), as.integer)
+storage.mode(mat2)
+# create an index of comparisons to makeo 
+inx <- t(combn(1:nrow(mat2),2))
+#if interested check that we have no redundancy(not necessary)
+#tf <- apply(test,2,function(x){x[1]==49 & x[2]==50})
+#sum(tf)
+#tf <- apply(test,2,function(x){x[1]==50 & x[2]==49})
+#sum(tf)
+
+.inner.pap <- function(x, y){
+  out <- acepack::ace(x, y)
+  cor(out$tx, out$ty)
+}
+
+#mapply version (returns vector)
+res <- mapply(inx[,1], inx[,2], FUN=function(r1, r2, m){
+      .inner.pap(m[,r1], m[,r2])
+  }, MoreArgs=list(m=mat2)
+)
+out3 <- matrix(NA, ncol=ncol(mat),nrow=nrow(mat))
+out3[inx] <- res
+
+#apply version (returns vector)
+res <- apply(inx, 1, function(i, m){
+      .inner.pap(m[i[1],], m[i[2],])
+  }, m=mat2)
+
+out4 <- matrix(NA, ncol=ncol(mat),nrow=nrow(mat))
+out4[inx] <- res
+
+#To get a more sofisticated version, you could rewrite the ace function to accept the matrix and index and to only calculate exactly what you are after, but in this case the ace function actually accepts a matrix (disclaimer: the matrix input seems not to yield the same result, and it seems like there is fortran code in there so not so easy to rewrite it to accept an index.).
+
+y <- mat[,1]
+x <- mat
+#this one could be
+out <- acepack::ace(x, y)
+c1a <- cor(out$tx, out$ty)
+out <- acepack::ace(t(x), y)
+c1b <- cor(out$tx, out$ty)
+
+#the same as this one
+out <- acepack::ace(x[,2], y)
+c2 <- cor(out$tx, out$ty)
+
+identical(c1a[2,], c2)
+identical(c1b[2,], c2)
+
+any(as.vector(c1a) == as.vector(c2))
+any(as.vector(c1b) == as.vector(c2))
+
+#Fail.. it seems not that the matrix input yields the same result
+
+
+
 
 ##################################################
 #So here is another nasty one.
