@@ -61,7 +61,7 @@ identical(x1,x2)
 #Example 4 - nested for loop
 # Add 2 to each element
 ################################################################################
-#create vector 1 to 10
+#create 10x10 matrix
 x0 <- matrix(1:100, ncol=10)
 
 #for loop version
