@@ -179,6 +179,18 @@ res5 <- sol5(mat)
 #as the cor function does not allow indexes to be used, we cant vectorize furthe
 # without rewriting that function as well. 
 
+#benchmark the solutions
+library(microbenchmark)
+microbenchmark(sol3(mat), sol4(mat), sol5(mat))
+
+#Unit: milliseconds
+#      expr      min       lq     mean   median       uq      max neval
+# sol3(mat) 459.2650 494.2500 515.0101 504.0770 519.7576 793.7025   100
+# sol4(mat) 470.1018 492.8400 514.1665 506.5867 520.3040 788.7378   100
+# sol5(mat) 499.9738 529.1344 551.3592 543.3093 560.5120 705.9766   100
+
+#The solutions don't differ that much with this example although these differences could be larger with more complex problems.
+#On average sol4 is the fastest although sol3 is very close to being the same. sol5 have the worst performance on average.
 
 ##################################################
 #So here is another nasty one.
