@@ -312,3 +312,18 @@ identical(As, As2) #fails because each factor in the columns are named in As2 an
 identical(Bs, Bs2) #fails because each factor in the columns are named in Bs2 and not in Bs; Bs[,1]; Bs2[,1]
 all.equal(As, As2)
 all.equal(Bs, BS2)
+
+#####
+#pappewaio solution
+#####
+
+sol2 <- function(l){
+	#As all elements have the same length we can just unlist everything
+	ar <- array(unlist(l, use.names=FALSE),c(10,2,3))
+	As3 <- as.data.frame(t(ar[,1,]))
+	Bs3 <- as.data.frame(t(ar[,2,]))
+	list(As3, Bs3)
+}
+
+
+
