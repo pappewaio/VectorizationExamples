@@ -76,72 +76,105 @@ identical(out1, out2)
 
 #usually things are ordered in the same way as they were sent in. That is another unsaid rule when it comes to vectorization.
 #if we want to minimize our memory foot print
-storage.mode(mat)
-mat2 <- apply(mat, c (1, 2), as.integer)
-storage.mode(mat2)
+#storage.mode(mat)
+#mat2 <- apply(mat, c (1, 2), as.integer)
+#storage.mode(mat2)
 # create an index of comparisons to makeo 
-inx <- t(combn(1:nrow(mat2),2))
+#inx <- t(combn(1:nrow(mat2),2))
 #if interested check that we have no redundancy(not necessary)
 #tf <- apply(test,2,function(x){x[1]==49 & x[2]==50})
 #sum(tf)
 #tf <- apply(test,2,function(x){x[1]==50 & x[2]==49})
 #sum(tf)
 
-.inner.pap <- function(x, y){
-  out <- acepack::ace(x, y)
-  cor(out$tx, out$ty)
+sol3 <- function(mat){
+	mat2 <- apply(mat, c (1, 2), as.integer)
+	inx <- t(combn(1:nrow(mat2),2))
+
+	.inner.pap <- function(x, y){
+	  out <- acepack::ace(x, y)
+	  cor(out$tx, out$ty)
+	}
+
+	#mapply version (returns vector)
+	res <- mapply(inx[,1], inx[,2], FUN=function(r1, r2, m){
+	      .inner.pap(m[,r1], m[,r2])
+	  }, MoreArgs=list(m=mat2)
+	)
+	out3 <- matrix(NA, ncol=ncol(mat),nrow=nrow(mat))
+	out3[inx] <- res
+	out3
 }
 
-#mapply version (returns vector)
-res <- mapply(inx[,1], inx[,2], FUN=function(r1, r2, m){
-      .inner.pap(m[,r1], m[,r2])
-  }, MoreArgs=list(m=mat2)
-)
-out3 <- matrix(NA, ncol=ncol(mat),nrow=nrow(mat))
-out3[inx] <- res
+res3 <- sol3(mat)
 
-#apply version (returns vector)
-res <- apply(inx, 1, function(i, m){
-      .inner.pap(m[i[1],], m[i[2],])
-  }, m=mat2)
+sol4 <- function(mat){
+	mat2 <- apply(mat, c (1, 2), as.integer)
+	inx <- t(combn(1:nrow(mat2),2))
 
-out4 <- matrix(NA, ncol=ncol(mat),nrow=nrow(mat))
-out4[inx] <- res
+	.inner.pap <- function(x, y){
+	  out <- acepack::ace(x, y)
+	  cor(out$tx, out$ty)
+	}
+	#apply version (returns vector)
+	res <- apply(inx, 1, function(i, m){
+	      .inner.pap(m[i[1],], m[i[2],])
+	  }, m=mat2)
+	
+	out4 <- matrix(NA, ncol=ncol(mat),nrow=nrow(mat))
+	out4[inx] <- res
+	out4
+}
+
+res4 <- sol4(mat)
 
 #To get a more sofisticated version, you could rewrite the ace function to accept the matrix and index and to only calculate exactly what you are after, but in this case the ace function actually accepts a matrix (disclaimer: the matrix input seems not to yield the same result, and it seems like there is fortran code in there so not so easy to rewrite it to accept an index.).
 
-y <- mat[,1]
-x <- mat
-#this one could be
-out <- acepack::ace(x, y)
-c1a <- cor(out$tx, out$ty)
-out <- acepack::ace(t(x), y)
-c1b <- cor(out$tx, out$ty)
-
-#the same as this one
-out <- acepack::ace(x[,2], y)
-c2 <- cor(out$tx, out$ty)
-
-identical(c1a[2,], c2)
-identical(c1b[2,], c2)
-
-any(as.vector(c1a) == as.vector(c2))
-any(as.vector(c1b) == as.vector(c2))
+#y <- mat[,1]
+#x <- mat
+##this one could be
+#out <- acepack::ace(x, y)
+#c1a <- cor(out$tx, out$ty)
+#out <- acepack::ace(t(x), y)
+#c1b <- cor(out$tx, out$ty)
+#
+##the same as this one
+#out <- acepack::ace(x[,2], y)
+#c2 <- cor(out$tx, out$ty)
+#
+#identical(c1a[2,], c2)
+#identical(c1b[2,], c2)
+#
+#any(as.vector(c1a) == as.vector(c2))
+#any(as.vector(c1b) == as.vector(c2))
 
 #Fail.. it seems not that the matrix input yields the same result
 
 ## Another version where we calculate the cor as a second step.
-res <- apply(inx, 1, function(i, m){
-  		out <- acepack::ace(m[i[1],], m[i[2],])
-		c(out$tx, out$ty)
-  }, m=mat2)
+sol5 <- function(mat){
+	mat2 <- apply(mat, c (1, 2), as.integer)
+	inx <- t(combn(1:nrow(mat2),2))
 
-res2 <- apply(res,2, function(m2, g1){
-			cor(m2[1:g1], m2[(g1+1):length(m2)])
-  }, g1=50)
+	.inner.pap <- function(x, y){
+	  out <- acepack::ace(x, y)
+	  cor(out$tx, out$ty)
+	}
 
-out5 <- matrix(NA, ncol=ncol(mat),nrow=nrow(mat))
-out5[inx] <- res2
+	res <- apply(inx, 1, function(i, m){
+	  		out <- acepack::ace(m[i[1],], m[i[2],])
+			c(out$tx, out$ty)
+	  }, m=mat2)
+	
+	res2 <- apply(res,2, function(m2, g1){
+				cor(m2[1:g1], m2[(g1+1):length(m2)])
+	  }, g1=50)
+	
+	out5 <- matrix(NA, ncol=ncol(mat),nrow=nrow(mat))
+	out5[inx] <- res2
+	out5
+}
+
+res5 <- sol5(mat)
 
 #as the cor function does not allow indexes to be used, we cant vectorize furthe
 # without rewriting that function as well. 
