@@ -271,6 +271,19 @@ for(i in 1:(dim(sobj.bool)[2])) {
   } 
 }
 
+##pappewaio vectorized solution
+sol1 <- function(mat, cutoff){
+	logic <- mat > cutoff
+	totcomb <- apply(t(combn(colnames(mat),2)),1,paste,collapse="")
+	funx <- function(row, totcomb){
+			totcomb %in% apply(t(combn(names(row)[which(row)],2)),1,paste,collapse="")
+	}
+	res <- apply(apply(logic, 1, funx, totcomb),1, sum)
+
+	#make data comparable to other solutions
+	xy <- t(combn(colnames(mat),2))
+	data.frame(x=xy[,1],y=xy[,2],times=res)
+}
 ##################################################
 #So here is an easier one (maybe)
 #I have a list where each element (a, b, c) has several other elements (A, B) like this:
