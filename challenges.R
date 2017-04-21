@@ -190,6 +190,10 @@ tMat <- t(mat)
 #first we just find the values over the cutoff and this is vectorized so... no problem here.
 sobj.bool <- tMat > cutoff
 
+#set up variables necessary for calculations
+cases <- rownames(tMat)
+ncases <- length(cases)
+
 #set up a dataframe to store results
 results <- data.frame(
   x=rep(cases, each=ncases),
@@ -197,9 +201,6 @@ results <- data.frame(
   times=rep(0, ncases^2)
 )
 
-#set up variables necessary for calculations
-cases <- rownames(tMat)
-ncases <- length(cases)
 
 #find related cases
 for(i in 1:(dim(sobj.bool)[2])) {
