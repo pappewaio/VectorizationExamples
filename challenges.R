@@ -192,6 +192,15 @@ microbenchmark(sol3(mat), sol4(mat), sol5(mat))
 #The solutions don't differ that much with this example although these differences could be larger with more complex problems.
 #On average sol4 is the fastest although sol3 is very close to being the same. sol5 have the worst performance on average.
 
+#Ran it on my machine as well, same conclusion /pappewaio
+#> microbenchmark(sol3(mat), sol4(mat), sol5(mat))
+#Unit: milliseconds
+#      expr      min       lq     mean   median       uq      max neval
+# sol3(mat) 430.7390 465.7790 488.4251 480.3787 506.7110 651.4949   100
+# sol4(mat) 424.9015 472.9759 494.1501 492.7945 516.0457 584.3677   100
+# sol5(mat) 433.3937 482.0668 512.0837 509.7396 533.9748 684.4709   100
+
+
 ##################################################
 #So here is another nasty one.
 #Below there is a matrix where each row contains some values.
