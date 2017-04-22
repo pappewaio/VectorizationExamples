@@ -325,5 +325,87 @@ sol2 <- function(l){
 	list(As3, Bs3)
 }
 
+##################################
+#Challange 4
+#The overall goal of this challange is pretty straight forward. We have a group of different elements that interact with each other at
+#different frequencies. Constraints for the frequencies of interaction for each individual element are generally known. The challange is
+#to derive a dataset of X elements that interact within the known frequency constraints.
+#The challange could be divided into 2 stages. 
+#The overall goal is to a) set up an interaction table that dictates the frequency of interactions between a number of elements.
+#Once this is accomplished we want to b) derive a dataset comprised of x interaction pairs where the whole dataset reflects the interaction
+#frequencies portrayed in the table.
 
+#Here is an example:
 
+#say we have 5 elements:
+elem <- LETTERS[1:5]
+
+#the constraints for the elements interactions are as follows:
+#a) each element has a relativley large probability of interacting with itself.
+#b) each element has a relativley large probability of interacting with a subset (1-3) of the other elements but
+#c) a relativley small probability of interacting equally with all other elements.
+#A probability distribution of the interactions of each element with another element might look something like this:
+
+x <- c(rnorm(1000, 20, 10), rnorm(200, 70, 10))
+hist(x[x>1 & x<100], breaks=100, main="Interaction probability", xlab="Probability x 100")
+
+#Despite this, drawing from such a distribution is most likely to give a high proportion of elements that only react weakly 
+#with all other elements and that is not desired. Thus we need a somewhat more structured approach to get the desired results.
+#Such an attempt might generate the following:
+
+a <- c(47, 34, 1, 17,  1)
+b <- c(5, 56, 2, 36, 1)
+c <- c(1, 3, 50, 2, 44)
+d <- c(45, 1, 1, 52, 1)
+e <- c(1, 1, 5, 49, 44)
+intMat <- matrix(c(a,b,c,d,e), ncol=length(elem), nrow=length(elem), dimnames=list(elem, elem))
+intMat
+
+#The matrix describes the probability of reaction with each element with each other element in each column where each column sums to 100%
+#thus representing all interactions for that element.
+#For example we can see that element A interacts strongly with itself (47) and with B and D (34, 17) but weakly 
+#with other elements.
+#Although intMat describes the interactions in a manner that follows the specificed constraints. We would desire a way to do this
+#dynamically and with up to 20 elements.
+
+#In stage 2 we want to compose a dataset of interacting element sets (with up to 5 elements per set) that mirrors the frequencies of
+#interactions in the interaction table.
+#We can first generate all the possible desired interaction types using the following function:
+
+allInts <- function(n, elem) {
+	switch(n-1,
+	       comb <- expand.grid(elem, elem),
+	       comb <- expand.grid(elem, elem, elem),
+	       comb <- expand.grid(elem, elem, elem, elem),
+	       comb <- expand.grid(elem, elem, elem, elem, elem)
+	)
+	dat.sort <- t(apply(comb, 1, sort))
+	dat <- comb[!duplicated(dat.sort),]
+	return(dat)
+}
+
+two <- apply(allInts(2, elem), 1, paste, collapse="")
+three <- apply(allInts(3, elem), 1, paste, collapse="")
+four <- apply(allInts(4, elem), 1, paste, collapse="")
+five <- apply(allInts(5, elem), 1, paste, collapse="")
+combos <- c(two, three, four, five)
+
+#Now the variable called combos includes all desired combinations of the elments and the goal is to pick from these elements so that
+#the interaction frequency is mirrored by that in the interaction table.
+#The following function may be useful which calculates the interactions in the input variable:
+
+intFreq <- function(inp) {
+	s2 <- strsplit(gsub("(.{1})", "\\1 ", inp), " ")
+	com <- lapply(s2, function(x) combn(x, 2))
+	nam <- lapply(com, function(j) sapply(1:ncol(j), function(u) paste(j[1,u], j[2,u], sep="")))
+	return(table(unlist(nam)))
+}
+
+intFreq(combos)
+
+#We can see that the dataset currently has 120 AA interactions out of a total of 600 A interactions (20%) but, 
+#according to the interaction matrix we want 47% of A interactions to be AA interactions.
+#Thus, the challange here is to adjust the interactions in the combos variable so that the combos variable, in the end, reflects the
+#interaction frequency in the interactions table.
+#Note that acheiving this goal with a small (<5) number of elements is potentially impossible. 
+#Ideally we would be able to solve the problem for element numbers between 5-20.
