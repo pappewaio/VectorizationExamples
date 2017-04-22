@@ -391,7 +391,8 @@ five <- apply(allInts(5, elem), 1, paste, collapse="")
 combos <- c(two, three, four, five)
 
 #Now the variable called combos includes all desired combinations of the elments and the goal is to pick from these elements so that
-#the interaction frequency is mirrored by that in the interaction table.
+#the interaction frequency is mirrored by that in the interaction table. In addition, we would like interaction elements from each
+#interaction type (two, three, four, five) in the final result.
 #The following function may be useful which calculates the interactions in the input variable:
 
 intFreq <- function(inp) {
@@ -409,3 +410,20 @@ intFreq(combos)
 #interaction frequency in the interactions table.
 #Note that acheiving this goal with a small (<5) number of elements is potentially impossible. 
 #Ideally we would be able to solve the problem for element numbers between 5-20.
+
+#As an example, although with a very limited number of elements, with the following interaction table:
+matrix(
+	c((20/44/1)*100, (24/44/1)*100, (24/44/1)*100, (20/44/1)*100), 
+	ncol=2, 
+	nrow=2, 
+	dimnames=list(LETTERS[1:2], LETTERS[1:2])
+)
+
+#A sucessful result would be:
+res <- combos[c(1,2,6,16,17,21,56,66,126,136,121,191)]
+intFreq(res)
+
+#The results show a total AA interactions to be 20 which is 20/(20+24)*100 of all A interactions and 
+#corresponds with the interaction table. The same is true for BB.
+#Finally AB and BA interactions (here only shown as BA) are 24/(20+24)*100 and also correspond with the
+#desired number in the interaction table.
