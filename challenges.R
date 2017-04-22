@@ -427,3 +427,4 @@ intFreq(res)
 #corresponds with the interaction table. The same is true for BB.
 #Finally AB and BA interactions (here only shown as BA) are 24/(20+24)*100 and also correspond with the
 #desired number in the interaction table.
+#In addition the final dataset (res) includes results from all interaction sets (two, three, four, five).
