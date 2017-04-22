@@ -192,6 +192,15 @@ microbenchmark(sol3(mat), sol4(mat), sol5(mat))
 #The solutions don't differ that much with this example although these differences could be larger with more complex problems.
 #On average sol4 is the fastest although sol3 is very close to being the same. sol5 have the worst performance on average.
 
+#Ran it on my machine as well, same conclusion /pappewaio
+#> microbenchmark(sol3(mat), sol4(mat), sol5(mat))
+#Unit: milliseconds
+#      expr      min       lq     mean   median       uq      max neval
+# sol3(mat) 430.7390 465.7790 488.4251 480.3787 506.7110 651.4949   100
+# sol4(mat) 424.9015 472.9759 494.1501 492.7945 516.0457 584.3677   100
+# sol5(mat) 433.3937 482.0668 512.0837 509.7396 533.9748 684.4709   100
+
+
 ##################################################
 #So here is another nasty one.
 #Below there is a matrix where each row contains some values.
@@ -262,6 +271,19 @@ for(i in 1:(dim(sobj.bool)[2])) {
   } 
 }
 
+##pappewaio vectorized solution
+sol1 <- function(mat, cutoff){
+	logic <- mat > cutoff
+	totcomb <- apply(t(combn(colnames(mat),2)),1,paste,collapse="")
+	funx <- function(row, totcomb){
+			totcomb %in% apply(t(combn(names(row)[which(row)],2)),1,paste,collapse="")
+	}
+	res <- apply(apply(logic, 1, funx, totcomb),1, sum)
+
+	#make data comparable to other solutions
+	xy <- t(combn(colnames(mat),2))
+	data.frame(x=xy[,1],y=xy[,2],times=res)
+}
 ##################################################
 #So here is an easier one (maybe)
 #I have a list where each element (a, b, c) has several other elements (A, B) like this:
@@ -290,3 +312,18 @@ identical(As, As2) #fails because each factor in the columns are named in As2 an
 identical(Bs, Bs2) #fails because each factor in the columns are named in Bs2 and not in Bs; Bs[,1]; Bs2[,1]
 all.equal(As, As2)
 all.equal(Bs, BS2)
+
+#####
+#pappewaio solution
+#####
+
+sol2 <- function(l){
+	#As all elements have the same length we can just unlist everything
+	ar <- array(unlist(l, use.names=FALSE),c(10,2,3))
+	As3 <- as.data.frame(t(ar[,1,]))
+	Bs3 <- as.data.frame(t(ar[,2,]))
+	list(As3, Bs3)
+}
+
+
+
