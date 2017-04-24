@@ -428,3 +428,50 @@ intFreq(res)
 #Finally AB and BA interactions (here only shown as BA) are 24/(20+24)*100 and also correspond with the
 #desired number in the interaction table.
 #In addition the final dataset (res) includes results from all interaction sets (two, three, four, five).
+
+					      
+#########################Solutions
+#Possible solution for interaction matrix
+
+#Sets cells percentages for cells that interact
+.high <- function(x) {
+    int <- sample(c(1,2), size=1)
+    x[sample(which(is.na(x)), size=int)] <- sample(seq(10, 15, 1), size=int)
+    return(x)
+}
+
+#Fills in percentages for the rest of the cells (i.e. that don't interact)
+.fill <- function(i, m) {
+    x <- m[i,]
+    x[is.na(m[,i]) == FALSE] <- m[is.na(m[,i]) == FALSE,i]
+    
+    if(sum(x, na.rm=TRUE) > 95) {
+        x[i] <- x[i] - 5
+    }
+    
+    y <- x
+    while(sum(c(x, y), na.rm=TRUE) != 100) {
+        j <- sample(seq(0, 100-sum(x, na.rm=TRUE), 1), size=length(x[is.na(x) == TRUE]))
+        y <-  round(j/sum(j)*(100-sum(x, na.rm=TRUE)))
+    }
+    x[is.na(x) == TRUE] <- y
+    
+    return(x)
+}
+
+#Calculates interaction matrix
+interactionMatrix <- function(cellNames, seed) {
+    set.seed(seed)
+    m <- matrix(NA, ncol=length(cellNames), nrow=length(cellNames), dimnames=(list(cellNames, cellNames)))
+    diag(m) <- sample(seq(35, 45, 1), size=length(diag(m)))
+    
+    m <- apply(m, 2, .high)
+    
+    for(i in 1:(ncol(m)-1)) {
+        m[,i] <- .fill(i, m)
+    }
+    
+    m[,ncol(m)] <- m[ncol(m), ]
+    m[nrow(m), ncol(m)] <- (100 - sum(m[, ncol(m)])) + m[nrow(m), ncol(m)]
+    return(m)
+}
