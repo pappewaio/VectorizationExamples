@@ -1,13 +1,19 @@
-#So here is one I was working on last week. There is a function, acepack::ace(), that returns a result that can then 
-#be used to calculate a non-linear correlation like:
+#So here is one I was working on last week. There is a function, acepack::ace(),
+#that returns a result that can then be used to calculate a non-linear
+#correlation like:
 # z <- acepack::ace(x, y); correlation <- cor(z$tx, z$ty
-#The problem is that the ace function doesn't appear to be vectorized and therefore can only take 2 vectors at a time as input.
-#I was trying to calculate the correlation matrix for the columns of a 22662x672 matrix (genes vs samples). 
-#Intuitivley this was a nested for loop solution which I managed to vectorize in the end but not without having to reduce the number
-#of genes used so that the matrix could be held in memory. This is potentially more a "big data" problem than a vectorization problem but
-#also provides an opportunity to illustrate how to work in situations where memory (as you said, vectorizations biggest weakness) is an issue.
+#The problem is that the ace function doesn't appear to be vectorized and
+#therefore can only take 2 vectors at a time as input. I was trying to calculate
+#the correlation matrix for the columns of a 22662x672 matrix
+#(genes vs samples). Intuitivley this was a nested for loop solution which I
+#managed to vectorize in the end but not without having to reduce the number of
+#genes used so that the matrix could be held in memory. This is potentially more
+#a "big data" problem than a vectorization problem but also provides an
+#opportunity to illustrate how to work in situations where memory (as you said,
+#vectorizations biggest weakness) is an issue.
 
-#My solution looked like this although I'll cut down the size of the matrix to 50x672:
+#My solution looked like this although I'll cut down the size of the matrix
+#to 50x672:
 
 #######make data
 mat <- matrix(
@@ -42,8 +48,9 @@ m1 <- matrix(
   byrow=TRUE
 )
 rownames(m1) <- rep(colnames(mat), ncol(mat))
-    
-o <- order(rownames(m1)) #prevents me from creating another large variable to hold the 2nd argument to ace().
+
+#prevents creating another large variable to hold the 2nd argument to ace().
+o <- order(rownames(m1))
 
 #a unit ot do the correlation
 .inner <- function(x, y) {
@@ -51,7 +58,8 @@ o <- order(rownames(m1)) #prevents me from creating another large variable to ho
   cor(out$tx, out$ty)
 }
 
-#not sure if sapply strictly constitutes a vectorized solution (unclear to me as well/pappewaio)
+#not sure if sapply strictly constitutes a vectorized solution
+#(unclear to me as well/pappewaio)
 res <- sapply(1:nrow(m1), function(j)
   .inner(m1[j,], m1[o[j],])
 )
@@ -66,15 +74,18 @@ out2 <- out2[,match(rownames(out2), colnames(out2))]
 identical(out1, out2)
 
 #so there are 2 things with the example above:
-#a) even though my solution is vectorized (or at least not a nested for loop), the code becomes very difficult to follow. This is a 
-#typical reason that I sometimes choose to use for loops, i.e. readability. 
-#b) tracking which correlation corresponds to which sample is not so straight forward
+#a) even though my solution is vectorized (or at least not a nested for loop),
+#the code becomes very difficult to follow. This is a typical reason that I
+#sometimes choose to use for loops, i.e. readability. b) tracking which
+#correlation corresponds to which sample is not so straight forward.
 
 
 #########Pappewaio solution
-# first aim: try to use apply to gain speed. (as my belief is that apply is faster than sapply, this needs to be tested)
+# first aim: try to use apply to gain speed.
+#(as my belief is that apply is faster than sapply, this needs to be tested)
 
-#usually things are ordered in the same way as they were sent in. That is another unsaid rule when it comes to vectorization.
+#usually things are ordered in the same way as they were sent in. That is
+#another unsaid rule when it comes to vectorization.
 #if we want to minimize our memory foot print
 #storage.mode(mat)
 #mat2 <- apply(mat, c (1, 2), as.integer)
@@ -128,7 +139,11 @@ sol4 <- function(mat){
 
 res4 <- sol4(mat)
 
-#To get a more sofisticated version, you could rewrite the ace function to accept the matrix and index and to only calculate exactly what you are after, but in this case the ace function actually accepts a matrix (disclaimer: the matrix input seems not to yield the same result, and it seems like there is fortran code in there so not so easy to rewrite it to accept an index.).
+#To get a more sofisticated version, you could rewrite the ace function to
+#accept the matrix and index and to only calculate exactly what you are after,
+#but in this case the ace function actually accepts a matrix (disclaimer: the
+#matrix input seems not to yield the same result, and it seems like there is
+#fortran code in there so not so easy to rewrite it to accept an index.).
 
 #y <- mat[,1]
 #x <- mat
@@ -176,8 +191,8 @@ sol5 <- function(mat){
 
 res5 <- sol5(mat)
 
-#as the cor function does not allow indexes to be used, we cant vectorize furthe
-# without rewriting that function as well. 
+#as the cor function does not allow indexes to be used, we cant vectorize
+#furthe without rewriting that function as well.
 
 #benchmark the solutions
 library(microbenchmark)
@@ -189,8 +204,10 @@ microbenchmark(sol3(mat), sol4(mat), sol5(mat))
 # sol4(mat) 470.1018 492.8400 514.1665 506.5867 520.3040 788.7378   100
 # sol5(mat) 499.9738 529.1344 551.3592 543.3093 560.5120 705.9766   100
 
-#The solutions don't differ that much with this example although these differences could be larger with more complex problems.
-#On average sol4 is the fastest although sol3 is very close to being the same. sol5 have the worst performance on average.
+#The solutions don't differ that much with this example although these
+#differences could be larger with more complex problems. On average sol4 is the
+#fastest although sol3 is very close to being the same. sol5 have the worst
+#performance on average.
 
 #Ran it on my machine as well, same conclusion /pappewaio
 #> microbenchmark(sol3(mat), sol4(mat), sol5(mat))
@@ -206,7 +223,8 @@ microbenchmark(sol3(mat), sol4(mat), sol5(mat))
 #Below there is a matrix where each row contains some values.
 #Dependant on the values we consider some of the cases (columns) related.
 #We specify those values that indicate a relationship with a cutoff.
-#The next step is to assemble all of the related cases and count the number of times we find them to be related. 
+#The next step is to assemble all of the related cases and count the number of
+#times we find them to be related.
 
 #set up some example data
 set.seed(234)
@@ -219,7 +237,8 @@ mat <- matrix(
 #specify the cutoff
 cutoff <- 0.5
 
-#by looking at the mat variable, and considering the cutoff, we can already here see what the expected result is:
+#by looking at the mat variable, and considering the cutoff, we can already here
+#see what the expected result is:
 #row 1 related cases: AB, AC, AE, BC, BE, CE
 #row 2 related cases: AC, AD, AE, CD, CE, DE
 #row 3 related cases: BC, BD, CD
@@ -235,13 +254,14 @@ cutoff <- 0.5
 # CE: 2
 # DE: 1
 
-#We also want the counts to be the same for the reverse, i.e. if AB = 1 then BA should be 1
-#All the rest should be 0.
+#We also want the counts to be the same for the reverse, i.e. if AB = 1 then BA
+#should be 1. All the rest should be 0.
 
 #begin calculations
 tMat <- t(mat)
 
-#first we just find the values over the cutoff and this is vectorized so... no problem here.
+#first we just find the values over the cutoff and this is vectorized so...
+#no problem here.
 sobj.bool <- tMat > cutoff
 
 #set up variables necessary for calculations
@@ -276,7 +296,10 @@ sol1 <- function(mat, cutoff){
 	logic <- mat > cutoff
 	totcomb <- apply(t(combn(colnames(mat),2)),1,paste,collapse="")
 	funx <- function(row, totcomb){
-			totcomb %in% apply(t(combn(names(row)[which(row)],2)),1,paste,collapse="")
+			totcomb %in% apply(
+                t(combn(names(row)[which(row)],2)),
+                1,
+                paste,collapse="")
 	}
 	res <- apply(apply(logic, 1, funx, totcomb),1, sum)
 
@@ -286,7 +309,8 @@ sol1 <- function(mat, cutoff){
 }
 ##################################################
 #So here is an easier one (maybe)
-#I have a list where each element (a, b, c) has several other elements (A, B) like this:
+#I have a list where each element (a, b, c) has several other elements (A, B)
+#like this:
 l <- list(
   a=list(A=letters[1:10], B=LETTERS[11:20]), 
   b=list(A=letters[1:10], B=LETTERS[11:20]), 
@@ -308,8 +332,12 @@ rownames(Bs) <- names(l)
 As2 <- data.frame(t(sapply(l, "[[", 1)))
 Bs2 <- data.frame(t(sapply(l, "[[", 2)))
 
-identical(As, As2) #fails because each factor in the columns are named in As2 and not in As; As[,1]; As2[,1]
-identical(Bs, Bs2) #fails because each factor in the columns are named in Bs2 and not in Bs; Bs[,1]; Bs2[,1]
+#fails because each factor in the columns are named
+#in As2 and not in As; As[,1]; As2[,1]
+#fails because each factor in the columns are named in
+#Bs2 and not in Bs; Bs[,1]; Bs2[,1]
+identical(As, As2)
+identical(Bs, Bs2)
 all.equal(As, As2)
 all.equal(Bs, BS2)
 
@@ -327,13 +355,16 @@ sol2 <- function(l){
 
 ##################################
 #Challange 4
-#The overall goal of this challange is pretty straight forward. We have a group of different elements that interact with each other at
-#different frequencies. Constraints for the frequencies of interaction for each individual element are generally known. The challange is
-#to derive a dataset of X elements that interact within the known frequency constraints.
-#The challange could be divided into 2 stages. 
-#The overall goal is to a) set up an interaction table that dictates the frequency of interactions between a number of elements.
-#Once this is accomplished we want to b) derive a dataset comprised of x interaction pairs where the whole dataset reflects the interaction
-#frequencies portrayed in the table.
+#The overall goal of this challange is pretty straight forward. We have a group
+#of different elements that interact with each other at different frequencies.
+#Constraints for the frequencies of interaction for each individual element are
+#generally known. The challange is to derive a dataset of X elements that
+#interact within the known frequency constraints. The challange could be divided
+#into 2 stages. The overall goal is to a) set up an interaction table that
+#dictates the frequency of interactions between a number of elements. Once this
+#is accomplished we want to b) derive a dataset comprised of x interaction pairs
+#where the whole dataset reflects the interaction frequencies portrayed in the
+#table.
 
 #Here is an example:
 
@@ -342,15 +373,25 @@ elem <- LETTERS[1:5]
 
 #the constraints for the elements interactions are as follows:
 #a) each element has a relativley large probability of interacting with itself.
-#b) each element has a relativley large probability of interacting with a subset (1-3) of the other elements but
-#c) a relativley small probability of interacting equally with all other elements.
-#A probability distribution of the interactions of each element with another element might look something like this:
+#b) each element has a relativley large probability of interacting with a subset
+#(1-3) of the other elements but
+#c) a relativley small probability of interacting equally with all other
+#elements.
+#A probability distribution of the interactions of each element with another
+#element might look something like this:
 
 x <- c(rnorm(1000, 20, 10), rnorm(200, 70, 10))
-hist(x[x>1 & x<100], breaks=100, main="Interaction probability", xlab="Probability x 100")
+hist(
+    x[x>1 & x<100],
+    breaks=100,
+    main="Interaction probability",
+    xlab="Probability x 100"
+)
 
-#Despite this, drawing from such a distribution is most likely to give a high proportion of elements that only react weakly 
-#with all other elements and that is not desired. Thus we need a somewhat more structured approach to get the desired results.
+#Despite this, drawing from such a distribution is most likely to give a high
+#proportion of elements that only react weakly with all other elements and that
+#is not desired. Thus we need a somewhat more structured approach to get the
+#desired results.
 #Such an attempt might generate the following:
 
 a <- c(47, 34, 1, 17,  1)
@@ -358,19 +399,26 @@ b <- c(5, 56, 2, 36, 1)
 c <- c(1, 3, 50, 2, 44)
 d <- c(45, 1, 1, 52, 1)
 e <- c(1, 1, 5, 49, 44)
-intMat <- matrix(c(a,b,c,d,e), ncol=length(elem), nrow=length(elem), dimnames=list(elem, elem))
+intMat <- matrix(
+    c(a,b,c,d,e),
+    ncol=length(elem),
+    nrow=length(elem),
+    dimnames=list(elem, elem)
+)
 intMat
 
-#The matrix describes the probability of reaction with each element with each other element in each column where each column sums to 100%
-#thus representing all interactions for that element.
-#For example we can see that element A interacts strongly with itself (47) and with B and D (34, 17) but weakly 
-#with other elements.
-#Although intMat describes the interactions in a manner that follows the specificed constraints. We would desire a way to do this
+#The matrix describes the probability of reaction with each element with each
+#other element in each column where each column sums to 100% thus representing
+#all interactions for that element. For example we can see that element A
+#interacts strongly with itself (47) and with B and D (34, 17) but weakly with
+#other elements. Although intMat describes the interactions in a manner that
+#follows the specificed constraints. We would desire a way to do this
 #dynamically and with up to 20 elements.
 
-#In stage 2 we want to compose a dataset of interacting element sets (with up to 5 elements per set) that mirrors the frequencies of
-#interactions in the interaction table.
-#We can first generate all the possible desired interaction types using the following function:
+#In stage 2 we want to compose a dataset of interacting element sets (with up to
+#5 elements per set) that mirrors the frequencies of interactions in the
+#interaction table. We can first generate all the possible desired interaction
+#types using the following function:
 
 allInts <- function(n, elem) {
 	switch(n-1,
@@ -390,10 +438,12 @@ four <- apply(allInts(4, elem), 1, paste, collapse="")
 five <- apply(allInts(5, elem), 1, paste, collapse="")
 combos <- c(two, three, four, five)
 
-#Now the variable called combos includes all desired combinations of the elments and the goal is to pick from these elements so that
-#the interaction frequency is mirrored by that in the interaction table. In addition, we would like interaction elements from each
-#interaction type (two, three, four, five) in the final result.
-#The following function may be useful which calculates the interactions in the input variable:
+#Now the variable called combos includes all desired combinations of the elments
+#and the goal is to pick from these elements so that the interaction frequency
+#is mirrored by that in the interaction table. In addition, we would like
+#interaction elements from each interaction type (two, three, four, five) in the
+#final result. The following function may be useful which calculates the
+#interactions in the input variable:
 
 intFreq <- function(inp) {
 	s2 <- strsplit(gsub("(.{1})", "\\1 ", inp), " ")
@@ -404,14 +454,17 @@ intFreq <- function(inp) {
 
 intFreq(combos)
 
-#We can see that the dataset currently has 120 AA interactions out of a total of 600 A interactions (20%) but, 
-#according to the interaction matrix we want 47% of A interactions to be AA interactions.
-#Thus, the challange here is to adjust the interactions in the combos variable so that the combos variable, in the end, reflects the
-#interaction frequency in the interactions table.
-#Note that acheiving this goal with a small (<5) number of elements is potentially impossible. 
-#Ideally we would be able to solve the problem for element numbers between 5-20.
+#We can see that the dataset currently has 120 AA interactions out of a total of
+#600 A interactions (20%) but, according to the interaction matrix we want 47%
+#of A interactions to be AA interactions. Thus, the challange here is to adjust
+#the interactions in the combos variable so that the combos variable, in the
+#end, reflects the interaction frequency in the interactions table. Note that
+#acheiving this goal with a small (<5) number of elements is potentially
+#impossible. Ideally we would be able to solve the problem for element numbers
+#between 5-20.
 
-#As an example, although with a very limited number of elements, with the following interaction table:
+#As an example, although with a very limited number of elements, with the
+#following interaction table:
 matrix(
 	c((20/44/1)*100, (24/44/1)*100, (24/44/1)*100, (20/44/1)*100), 
 	ncol=2, 
@@ -423,8 +476,64 @@ matrix(
 res <- combos[c(1,2,6,16,17,21,56,66,126,136,121,191)]
 intFreq(res)
 
-#The results show a total AA interactions to be 20 which is 20/(20+24)*100 of all A interactions and 
-#corresponds with the interaction table. The same is true for BB.
-#Finally AB and BA interactions (here only shown as BA) are 24/(20+24)*100 and also correspond with the
-#desired number in the interaction table.
-#In addition the final dataset (res) includes results from all interaction sets (two, three, four, five).
+#The results show a total AA interactions to be 20 which is 20/(20+24)*100 of
+#all A interactions and corresponds with the interaction table. The same is true
+#for BB. Finally AB and BA interactions (here only shown as BA) are
+#24/(20+24)*100 and also correspond with the desired number in the interaction
+#table. In addition the final dataset (res) includes results from all
+#interaction sets (two, three, four, five).
+
+					      
+#########################Solutions
+#Possible solution for interaction matrix
+
+#Sets cells percentages for elements that interact.
+.high <- function(x) {
+    int <- sample(c(1,2), size=1)
+    x[sample(which(is.na(x)), size=int)] <- sample(seq(10, 15, 1), size=int)
+    return(x)
+}
+
+#Fills in percentages for the rest of the elements (i.e. that don't interact)
+.fill <- function(i, m) {
+    x <- m[i,]
+    x[is.na(m[,i]) == FALSE] <- m[is.na(m[,i]) == FALSE,i]
+    
+    if(sum(x, na.rm=TRUE) > 95) {
+        x[i] <- x[i] - 5
+    }
+    
+    y <- x
+    while(sum(c(x, y), na.rm=TRUE) != 100) {
+        j <- sample(
+            seq(0, 100-sum(x, na.rm=TRUE), 1),
+            size=length(x[is.na(x) == TRUE])
+        )
+        y <-  round(j/sum(j)*(100-sum(x, na.rm=TRUE)))
+    }
+    x[is.na(x) == TRUE] <- y
+    
+    return(x)
+}
+
+#Calculates interaction matrix
+interactionMatrix <- function(cellNames, seed) {
+    set.seed(seed)
+    m <- matrix(
+        NA,
+        ncol=length(cellNames),
+        nrow=length(cellNames),
+        dimnames=(list(cellNames, cellNames))
+    )
+    diag(m) <- sample(seq(35, 45, 1), size=length(diag(m)))
+    
+    m <- apply(m, 2, .high)
+    
+    for(i in 1:(ncol(m)-1)) {
+        m[,i] <- .fill(i, m)
+    }
+    
+    m[,ncol(m)] <- m[ncol(m), ]
+    m[nrow(m), ncol(m)] <- (100 - sum(m[, ncol(m)])) + m[nrow(m), ncol(m)]
+    return(m)
+}
